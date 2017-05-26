@@ -1,4 +1,4 @@
-module Context wheretype
+module Context where
 
 type Context = [(String,String)]
 ctx = []

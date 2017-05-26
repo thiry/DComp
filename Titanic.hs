@@ -1,7 +1,7 @@
 import Text.CSV -- cabal install csv
 import Data.List
 
-import DB
+import DB2 --import DB
 import Measure
 
 step1 = do -- transform csv into graph and split in 2
@@ -21,23 +21,23 @@ step1 = do -- transform csv into graph and split in 2
 
 step2 = do -- sample query and dot vizualization
  file <- readFile "titanic1.dhs"
- let db = read file :: Graph
- display "database" (take 300 db) -- 100
+ let db = trf (read file) :: Graph -- read file :: Graph
+-- display "database" (take 300 db) -- 100
  let query = [("?X","Sex","male"),("?X","Survived","1")]
  let r = answer query db []
- display "query" query
+-- display "query" query
  print (r)
 
 step3 = do -- compute performance
  file <- readFile "titanic1.dhs"
- let db = read file :: Graph
+ let db = trf (read file) :: Graph -- read file :: Graph
  let query = [("?X","Sex","male"),("?X","Survived","1")]
  p <- perf (\(q,d,c) -> answer q d c) (query,db,[])
  print p -- 0.33s
  
 step3b = do -- more simple query
  file <- readFile "titanic1.dhs"
- let db = read file :: Graph
+ let db = trf (read file) :: Graph -- read file :: Graph
  let query = [("1","?X","?Y")]
  p <- perf (\(q,d,c) -> answer q d c) (query,db,[])
  print p -- 0.18s

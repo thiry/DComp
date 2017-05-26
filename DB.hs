@@ -1,5 +1,8 @@
 module DB where
 
+
+import Context
+
 import System.Process (callCommand)
 import Data.Char (isUpper)
 
@@ -31,21 +34,6 @@ view file db = writeFile (file++".dot") ("digraph G {\nnode[shape=plaintext]; ed
 display file db = do
  view file db
  callCommand ("dot -Tpng "++file++".dot -o "++file++".png")
-
--- evaluate query --
--- contexts:
-type Context = [(String,String)]
-ctx = []
-
-has :: String -> Context -> Bool
-has x []         = False
-has x ((k,v):cs) = if (x==k) then True else has x cs
-
-get :: String -> Context -> String
-get x ((k,v):cs) = if (x==k) then v else get x cs
-
-put :: String -> String -> Context -> Context
-put k v cs = (k,v):cs
 
 -- matching
 --isVariable p = isUpper (p!!0)
@@ -89,23 +77,4 @@ answer (p:ps) vs ctx =
 v = map snd (answer query db ctx)
 -- [[("X","laurent")]]
 
--- Complement: evaluate pattern and graph transformations
-eval1 :: String -> Context -> String
-eval1 x ctx = if (isVariable x) then get x ctx else x
 
-eval3 :: Edge -> Context -> Edge
-eval3 (p,q,r) ctx = (eval1 p ctx, eval1 q ctx, eval1 r ctx)
-
-evaln :: Graph -> Context -> Graph
-evaln g ctx = map (\e -> eval3 e ctx) g
-
---trans :: Graph -> Graph -> Graph -> Graph
-trans pre post vs = -- pushout
- let cs = map snd (answer pre db ctx) 
-     ds = concat (map (evaln pre) cs)
-     vs'= filter (`notElem` ds) vs
-     ds'= concat (map (evaln post) cs)
-  in vs'++ds'
-
-db2 = trans [("X","at","Y")] [("X","hasLocation","Y")] db -- renaming
-db3 = trans [] [("michel","workfor","ensise")] db         -- adding

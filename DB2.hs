@@ -1,6 +1,7 @@
 module DB2 where
 
 import Context
+import Query
 import Data.List (nub)
 
 type Edge2  = (String,String,String)
@@ -62,7 +63,7 @@ answer []     vs ctx = [(True,ctx)]
 answer (p:ps) vs ctx = 
  let cs = map snd (matchn p vs ctx) in concat (map (answer ps vs) cs)
 
-v1 = match3 ("?X","hasskill","computerScience") (head db') []
-v2 = matchn ("?X","hasskill","computerScience") db' []
-v3 = answer [("?X","workfor","?Y"),("?Y","at","mulhouse")] db' []
+--v1 = match3 ("?X","hasskill","computerScience") (head db') []
+--v2 = matchn ("?X","hasskill","computerScience") db' []
+v3 = answer (query "(?X workfor ?Y) and (?Y at mulhouse)") db' []
 
