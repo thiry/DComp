@@ -48,7 +48,8 @@ put :: String -> String -> Context -> Context
 put k v cs = (k,v):cs
 
 -- matching
-isVariable p = isUpper (p!!0)
+--isVariable p = isUpper (p!!0)
+isVariable p = (p!!0)=='?'
 
 match1 :: String -> String -> Context -> (Bool,Context)
 match1 p v ctx = 

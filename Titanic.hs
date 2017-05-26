@@ -21,5 +21,7 @@ main = do
 sample1 = do
  file <- readFile "titanic1.dhs"
  let db = read file :: Graph
- let r = answer [("1","X","Y")] db []
+ let query = [("?X","Sex","male"),("?X","Survived","1")]
+ let r = answer query db []
+ display "query" query
  print (r)
