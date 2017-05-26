@@ -26,7 +26,7 @@ query = [ ("X","hasskill","computerScience")
 -- generate Graphviz view
 -- display "db" db
 -- display "query" query
-view file db = writeFile (file++".dot") ("digraph G {\nnode[shape=plaintext]; edge[arrowhead=vee];\n"++(concat (map (\(a,b,c)-> a++"->"++c++"[label=\""++b++"\"];\n") db))++"}")
+view file db = writeFile (file++".dot") ("digraph G {\nnode[shape=plaintext]; edge[arrowhead=vee];\n"++(concat (map (\(a,b,c)-> (show a)++"->"++(show c)++"[label="++(show b)++"];\n") db))++"}")
 
 display file db = do
  view file db
@@ -50,6 +50,7 @@ put k v cs = (k,v):cs
 -- matching
 --isVariable p = isUpper (p!!0)
 isVariable p = (p!!0)=='?'
+--isVariable p = (p!!0)=='_'
 
 match1 :: String -> String -> Context -> (Bool,Context)
 match1 p v ctx = 
