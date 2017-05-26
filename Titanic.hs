@@ -1,10 +1,12 @@
+module Titanic where 
+
 import Text.CSV -- cabal install csv
 import Data.List
 
-import DB2 --import DB
+import DB --import DB2
 import Measure
 
-step1 = do -- transform csv into graph and split in 2
+cvsToDB = do -- transform csv into graph and split in 2
  content <- parseCSVFromFile "titanic.csv"
  let Right tabl = content
  let headers    = head tabl
@@ -13,32 +15,17 @@ step1 = do -- transform csv into graph and split in 2
  let transform ((_,s):ps) = map (\(p,v) -> (s,p,v)) ps
  let graph      = concat (map transform properties)
  let grph       = filter (\(_,_,x) -> x/="") graph
- -- print (length grph) -- 8935
  writeFile "titanic.dhs" (show grph)
- let n = div (length grph) 2
- writeFile "titanic1.dhs" (show (take n grph))
- writeFile "titanic2.dhs" (show (drop n grph))
+ let n = 4469 -- div (length grph) 2
+ writeFile "titanic1.dhs"   (show (take 12 grph))
+ writeFile "titanic10.dhs"  (show (take 120 grph))
+ writeFile "titanic100.dhs" (show (take 1200 grph))
+ writeFile "titanica.dhs"   (show (take n grph))
+ writeFile "titanicb.dhs"   (show (drop n grph))
 
-step2 = do -- sample query and dot vizualization
- file <- readFile "titanic1.dhs"
- let db = trf (read file) :: Graph -- read file :: Graph
--- display "database" (take 300 db) -- 100
- let query = [("?X","Sex","male"),("?X","Survived","1")]
- let r = answer query db []
--- display "query" query
- print (r)
+run query file = do -- compute performance
+ content <- readFile file
+ let db = read content :: Graph -- trf (read file) :: Graph
+ p <- perf (\(q,d,c) -> answer q d c) (query,db,[])
+ putStrLn ("In "++(show $ fst p)++" with "++file) -- 0.33s
 
-step3 = do -- compute performance
- file <- readFile "titanic1.dhs"
- let db = trf (read file) :: Graph -- read file :: Graph
- let query = [("?X","Sex","male"),("?X","Survived","1")]
- p <- perf (\(q,d,c) -> answer q d c) (query,db,[])
- print p -- 0.33s
- 
-step3b = do -- more simple query
- file <- readFile "titanic1.dhs"
- let db = trf (read file) :: Graph -- read file :: Graph
- let query = [("1","?X","?Y")]
- p <- perf (\(q,d,c) -> answer q d c) (query,db,[])
- print p -- 0.18s
- --print (answer query db [])

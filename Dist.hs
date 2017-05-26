@@ -1,5 +1,6 @@
 module Dist where
 
+import Context
 import DB
 import Measure
 
@@ -24,25 +25,24 @@ slavebody db sock = forever $ do
  (handle, host, port) <- accept sock
  query <- hGetLine handle
  let pat = read query :: Graph
- let r = answer pat db ctx
+ let r = answer pat db []
  hPutStrLn handle (show r)
  hFlush handle
  hClose handle
 
-demo file basis = do 
- forkIO (slave file basis)
- forkIO (slave file (basis+10))
- threadDelay 1000000
- master' [("localhost",basis),("localhost",basis+10)] (show query)
- 
 -- master with n slaves
 master' hosts q = withSocketsDo $ do
  let ns = map (\h -> connectTo (fst h) (PortNumber (snd h))) hosts
  r <- sequence (map (\n -> transmit n q) ns)
- let s = concat r
- p <- perf last s
- let m = show (snd $ last s) ++ " in " ++ (show p)
+ p <- perf concat r
+ let m = "Get result in " ++ (show $ fst p)
  putStrLn m
+
+master'' hosts q = withSocketsDo $ do
+ let ns = map (\h -> connectTo (fst h) (PortNumber (snd h))) hosts
+ r <- sequence (map (\n -> transmit n q) ns)
+ p <- perf concat r
+ print (map snd (snd p))
 
 transmit n q = do
  h <- n

@@ -8,9 +8,10 @@ import Control.Exception.Base (evaluate)
 ------------------------------------------------------
 
 perf f x = do
+ let fx = f x 
  t1 <- getCurrentTime
- evaluate (f x)
+ evaluate fx
  t2 <- getCurrentTime
- return (diffUTCTime t2 t1)
+ return (diffUTCTime t2 t1,fx)
 
 perfs f xs = map (perf f) xs

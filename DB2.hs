@@ -4,39 +4,39 @@ import Context
 import Query
 import Data.List (nub)
 
-type Edge2  = (String,String,String)
-type Graph2 = [Edge2]
+--db,query :: Graph2
+--db = [ ("laurent","hasskill","computerScience")
+     --, ("laurent","workfor","ensisa")
+     --, ("ensisa","at","mulhouse")
+     --, ("zhao","hasskill","computerScience")
+     --, ("zhao","hasdirector","laurent")
+     --]
 
-db,query :: Graph2
-db = [ ("laurent","hasskill","computerScience")
-     , ("laurent","workfor","ensisa")
-     , ("ensisa","at","mulhouse")
-     , ("zhao","hasskill","computerScience")
-     , ("zhao","hasdirector","laurent")
-     ]
+--db'    = trf db
 
-query = [ ("?X","hasskill","computerScience")
-        , ("?X","workfor","ensisa")
-        ]
+--query = [ ("?X","hasskill","computerScience")
+        --, ("?X","workfor","ensisa")
+        --]
 
 -----------------------------------------------------
 -- Transformation : Graph2 -> Graph
 -----------------------------------------------------
+--type Edge2  = (String,String,String)
+--type Graph2 = [Edge2]
 
 dom db = nub (map (\(x,_,_) -> x) db)
 
 sel x db = (x,map (\(_,y,z) -> (y,z)) db')
  where db' = filter (\(x',_,_) -> x==x') db
 
-trf :: Graph2 -> Graph
+--trf :: Graph2 -> Graph
 trf db = map (\x -> sel x db) (dom db)
-
-type Graph = [(String,[(String,String)])]
-db'    = trf db
 
 -----------------------------------------------------
 -- New Matching
 -----------------------------------------------------
+type Graph = [(String,[(String,String)])]
+
 isVariable p = (p!!0)=='?'
 
 match1 :: String -> String -> Context -> (Bool,Context)
@@ -65,5 +65,5 @@ answer (p:ps) vs ctx =
 
 --v1 = match3 ("?X","hasskill","computerScience") (head db') []
 --v2 = matchn ("?X","hasskill","computerScience") db' []
-v3 = answer (query "(?X workfor ?Y) and (?Y at mulhouse)") db' []
+--v3 = answer (query "(?X workfor ?Y) and (?Y at mulhouse)") db' []
 

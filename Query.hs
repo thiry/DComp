@@ -17,10 +17,10 @@ thn0 p q = p `thn` \_ -> q
 mny p = (p `thn` (\v -> mny p `thn` (\vs -> ret (v:vs)))) `alt` (ret [])
 mny1 p = p `thn` (\x -> mny p `thn` (\xs -> ret (x:xs)))
 
-v1 = (chr 'a') "abc"
-v2 = ((chr 'a') `alt` (chr 'b'))"abc"
-v3 = ((chr 'a') `thn` (\v -> chr 'b'))"abc"
-v4 = mny (chr 'a') "aaab"
+--v1 = (chr 'a') "abc"
+--v2 = ((chr 'a') `alt` (chr 'b'))"abc"
+--v3 = ((chr 'a') `thn` (\v -> chr 'b'))"abc"
+--v4 = mny (chr 'a') "aaab"
 
 letter = foldr1 alt (map chr (['a'..'z']++['A'..'Z']))
 digit  = foldr1 alt (map chr ['0'..'9'])
@@ -36,6 +36,6 @@ simple = chr '(' `thn`
  \c -> chr ')' `thn`
  \_ -> ret (a,b,c)
 
-query = simple `thn`
+query s = (fst.head) $ (simple `thn`
  \x -> mny ((string " and ") `thn0` simple) `thn`
- \xs -> ret (x:xs)
+ \xs -> ret (x:xs)) s
