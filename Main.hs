@@ -20,10 +20,6 @@ import Network
 
 demo p qry_ = do
  let qry = query qry_
- sample <- readFile "titanic10.dhs"
- let db = read sample :: Graph
- display "partial" db
- display "query" qry
  putStrLn ("Query is: "++qry_)
  sequence_ (map (\file -> run qry file) ["titanic1.dhs","titanic10.dhs","titanic100.dhs","titanica.dhs","titanic.dhs"])
  putStrLn "With 2 computers"
@@ -51,6 +47,10 @@ main = do
     let hs = read c :: [(String,PortNumber)]
     master'' hs (show $ query q)
   _ -> do cvsToDB
+          sample <- readFile "titanic10.dhs"
+          let db = read sample :: Graph
+          display "partial-db" db
+          display "sample-query" (query "(?X Sex male) and (?X Survived 1)")
           putStrLn "---\nSee 'partial.png' for an extract of the database\n---"
           demo 9250 "(?X Sex male)"
           demo 9300 "(?X Sex male) and (?X Survived 1)"
