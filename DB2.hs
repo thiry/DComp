@@ -4,20 +4,6 @@ import Context
 import Query
 import Data.List (nub)
 
---db,query :: Graph2
---db = [ ("laurent","hasskill","computerScience")
-     --, ("laurent","workfor","ensisa")
-     --, ("ensisa","at","mulhouse")
-     --, ("zhao","hasskill","computerScience")
-     --, ("zhao","hasdirector","laurent")
-     --]
-
---db'    = trf db
-
---query = [ ("?X","hasskill","computerScience")
-        --, ("?X","workfor","ensisa")
-        --]
-
 -----------------------------------------------------
 -- Transformation : Graph2 -> Graph
 -----------------------------------------------------
@@ -35,7 +21,8 @@ trf db = map (\x -> sel x db) (dom db)
 -----------------------------------------------------
 -- New Matching
 -----------------------------------------------------
-type Graph = [(String,[(String,String)])]
+type Graph   = [(String,[(String,String)])]
+type Pattern = [(String,String,String)]
 
 isVariable p = (p!!0)=='?'
 
@@ -46,7 +33,6 @@ match1 p v ctx =
     else (True,put p v ctx)
   else (p==v,ctx)
 
---match3 :: Edge -> Edge -> Context -> (Bool,Context)
 match3 (p,q,r) (k,vs) ctx = 
  let (r1,ctx1) = match1 p k ctx in
  if r1 then 
@@ -59,11 +45,9 @@ matchn p@(t,_,_) (q:qs) ctx =
   [] -> matchn p qs ctx
   r  -> if isVariable t then r++(matchn p qs ctx) else r
 
+answer :: Pattern -> Graph -> Context -> [(Bool, Context)]
 answer []     vs ctx = [(True,ctx)]
 answer (p:ps) vs ctx = 
  let cs = map snd (matchn p vs ctx) in concat (map (answer ps vs) cs)
 
---v1 = match3 ("?X","hasskill","computerScience") (head db') []
---v2 = matchn ("?X","hasskill","computerScience") db' []
---v3 = answer (query "(?X workfor ?Y) and (?Y at mulhouse)") db' []
 
