@@ -51,5 +51,6 @@ answer []     vs ctx = [(True,ctx)]
 answer (p:ps) vs ctx = 
  let cs = map snd (matchn p vs ctx) in concat (map (answer ps vs) cs)
 
-
+--------------------------------
+-- equality between pattern and query memorization
 

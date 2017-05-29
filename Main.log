@@ -1,0 +1,48 @@
+---
+See 'partial.png' for an extract of the database
+---
+Query is: (?X Sex male)
+In 0.000438s with titanic1.dhs
+In 0.002912s with titanic10.dhs
+In 0.030558s with titanic100.dhs
+In 0.115719s with titanica.dhs
+In 0.249698s with titanic.dhs
+With 2 computers
+Get result in 0.008529s
+With new data structure and whole db
+In 0.098573s with ntitanica.dhs
+In 0.190945s with ntitanic.dhs
+With 2 computers
+Get result in 0.008361s
+---
+Query is: (?X Sex male) and (?X Survived 1)
+In 0.000382s with titanic1.dhs
+In 0.00303s with titanic10.dhs
+In 0.037822s with titanic100.dhs
+In 0.118568s with titanica.dhs
+In 0.262448s with titanic.dhs
+With 2 computers
+Get result in 0.001458s
+With new data structure and whole db
+In 0.093933s with ntitanica.dhs
+In 0.198093s with ntitanic.dhs
+With 2 computers
+Get result in 0.001443s
+---
+Query is: (?X ?Y ?Z)
+In 0.000384s with titanic1.dhs
+In 0.002956s with titanic10.dhs
+In 0.029396s with titanic100.dhs
+In 0.113594s with titanica.dhs
+In 0.258889s with titanic.dhs
+With 2 computers
+Get result in 0.324028s
+With new data structure and whole db
+In 0.093926s with ntitanica.dhs
+In 0.186107s with ntitanic.dhs
+With 2 computers
+Get result in 0.318224s
+---
+With MongoDB and full db
+(?X Sex male) in 0.004717s
+(?X ?Y ?Z) in 0.015303s
