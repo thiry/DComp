@@ -3,10 +3,10 @@ module Main where
 import Titanic
 import Query
 import Dist
-import DB
+import DBacc
 import qualified DB2 as D
 import qualified Dist2 as Ds
-import qualified Mongoo as M
+--import qualified Mongoo as M
 
 import Control.Concurrent (forkIO,threadDelay)
 import System.Environment (getArgs)
@@ -57,6 +57,6 @@ main = do
           demo 9300 "(?X Sex male) and (?X Survived 1)"
           demo 9350 "(?X ?Y ?Z)"
           putStrLn "With MongoDB and full db"
-          M.run "(?X Sex male)" M.query1
-          M.run "(?X ?Y ?Z)" M.query3
+          --M.run "(?X Sex male)" M.query1
+          --M.run "(?X ?Y ?Z)" M.query3
 
