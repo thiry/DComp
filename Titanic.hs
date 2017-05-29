@@ -1,9 +1,12 @@
+{-# LANGUAGE BangPatterns #-}
+
 module Titanic where 
 
 import Text.CSV -- cabal install csv
 import Data.List
 
-import DB
+--import DB
+import DBacc
 import qualified DB2 as D
 import Measure
 
@@ -39,7 +42,7 @@ cvsToDB = do -- transform csv into graph and split in 2
 run query file = do -- compute performance
  content <- readFile file
  let db = read content :: Graph -- trf (read file) :: Graph
- p <- perf (\(q,d,c) -> answer q d c) (query,db,[])
+ p <- perf (\(q,d,c) -> id $! answer q d c) (query,db,[])
  putStrLn ("In "++(show $ fst p)++" with "++file) -- 0.33s
 
 run' query file = do -- compute performance

@@ -1,3 +1,5 @@
+{-# LANGUAGE BangPatterns #-}
+
 module DBacc where
 -- try optimization: cut, accu
 
@@ -51,7 +53,8 @@ match3 (p,q,r) (v,w,x) ctx =
  --let (r1,r2) = match3 p v ctx
      --rs      = matchn p vs ctx
   --in if r1 then (r1,r2):rs else rs
-
+  
+matchn :: Edge -> [Edge] -> Context -> [Context]
 matchn p vs ctx = matchnacc p vs ctx []
 
 matchnacc p []     ctx acc = acc
@@ -59,10 +62,21 @@ matchnacc p (v:vs) ctx acc =
  let (r1,r2) = match3 p v ctx
   in if r1 then matchnacc p vs ctx $! (r2:acc) else matchnacc p vs ctx acc
 
-answer :: Graph -> Graph -> Context -> [(Bool,Context)]
-answer []     vs ctx = [(True,ctx)]
-answer (p:ps) vs ctx = 
- let cs = matchn p vs ctx in concat (map (answer ps vs) cs)
+--answer :: Graph -> Graph -> Context -> [(Bool,Context)]
+--answer []     vs ctx = [(True,ctx)]
 
+--answer (p:[]) vs ctx = matchn p vs ctx
+--answer (p:ps) vs ctx = concat (map (answer ps vs) (matchn p vs ctx))
 
+answer ps vs ctx = answerAcc ps vs ctx []
 
+answerAcc (p:[]) vs ctx acc = matchn p vs ctx
+answerAcc (p:ps) vs ctx acc = answerAcc ps vs ctx $! (uniMap' (matchn p vs) acc)
+
+uniMap f []     = []
+uniMap f (x:xs) = (f x)++(uniMap f xs)
+
+uniMap' f xs = uniMapAcc f xs []
+
+uniMapAcc f []     r = r
+uniMapAcc f (x:xs) r = uniMapAcc f xs $! ((f x)++r)
