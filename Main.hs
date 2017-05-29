@@ -11,6 +11,7 @@ import qualified Mongoo as M
 import Control.Concurrent (forkIO,threadDelay)
 import System.Environment (getArgs)
 import Network
+import Network.Socket
 
 -- Usage: ghc Main.hs && ./Main
 -- Then:
