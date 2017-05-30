@@ -89,17 +89,18 @@ q3 = 0.00024s
 The jointure (q2) can not be easily expressed and is omitted.
 
 An analysis of the results shows that:
-1) the time required is proportionnal to the size of the database
+1) the time required is approximatively proportionnal to the size of 
+the database
 2) the query has no real impact in the performance
-3) the program is really than MongoDB (1000x faster)
+3) the program is really slower than MongoDB (1000x faster)
 
 Notes. Some improvements have been considered with: 1) the use of tail 
-recursion and accumulators, and 2) the optimization flags (-O, -f*) and 
-capabilities of the ghc compiler. 
+recursion and accumulators (see DBacc), and 
+2) the optimization flags (-O, -f*) and capabilities of the ghc compiler. 
 But, no significant effects have been noticed.
 
 --- Optimizations ---
-Now, other data structure can be considered and lead to other 
+Now, other data structures can be considered and lead to other 
 but similar programs. For instance, graphs and contexts can be encoded 
 as follow:
 
@@ -160,13 +161,13 @@ master hosts query = withSocketsDo $ do
  print r
   where
    transmit node query = do
-   handle <- node
-   hPutStrLn handle query
-   hFlush handle
-   rep <- hGetLine handle
-   let r = read rep :: Result
-   hClose h
-   return r
+    handle <- node
+    hPutStrLn handle query
+    hFlush handle
+    rep <- hGetLine handle
+    let r = read rep :: Result
+    hClose h
+    return r
 
 readDB :: Filename -> IO Graph
 query  :: String   -> Pattern
@@ -180,7 +181,54 @@ sample = do
  threadDelay 10000
  master [("localhost",9000),("localhost",9001)] (show q)
 
+The performances for an architecture with two slaves are now:
 
+Size \ Query |    q1    |    q2    |    q3
+100%         | 0.01305s | 0.00182s | 0.46910s
 
+An analysis of the results shows that:
+1) the is obtained 30 times faster for q1, and 300 times faster for d2. 
+This can be explained by noticing that the result of q2 is a subset 
+from the one of q1.
+2) the query, or more precisely the size of the result, has a real 
+impact in the performance as illustrated by q3 that returns the whole db 
+(what requires an important transmission time), 
+3) the program is now 10-100 times slower than MongoDB.
+
+So, the performances of the program depends on the size of the 
+result(s) - what can be generalized to the standalone program, and an 
+possible optimization is presented at step 4.
+
+--- Step 3: (re)arranging data  ---
+As shown in step 1, the performances are related to the size of the 
+database and changing its structure can leads to better
+
+Size \ Query |    q1    |    q2    |    q3
+50%          | 0.14353s | 0.15395s | 0.13411s
+100%         | 0.28054s | 0.27429s | 0.27274s
+
+By using two computers:
+
+Size \ Query |    q1    |    q2    |    q3
+100%         | 0.01044s | 0.00177s | 0.43470s
+
+An analysis of the results shows that:
+1) 
+
+--- Step 4: (re)arranging results  ---
+--- Step 5: memorization  ---
+See end of DB.hs
+
+--- Conclusion ---
+An open source software for distributed logical databases more efficient 
+than MongoDB and freely available at https://github.com/thiry/DComp.git
+It include a command line utility to start slave programs that can be 
+eventually multiple and distant (each one is responsible of a part of 
+the whole database), or to start a master program that interprets client 
+queries - a concrete and human readable syntax is proposed to facilitate 
+its use.
+
+There are other capabilities offered by the system such as graph 
+rewriting that are currently studied and will be presented in the future.
 
 
