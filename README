@@ -1,0 +1,186 @@
+------------------------------------
+--- Distributed Logical Database ---
+---                              ---
+--- L. Thiry, 30/05/2017         ---
+------------------------------------
+
+The aim of this project is to propose efficient programs able to query a 
+large number of data.
+
+As an illustration, the "titanic.csv" database is an array composed with 
+approximatively 8000 elements with the 891 passengers whose name, sex, 
+status (i.e. has survived), etc. is known. 
+
+The program considered takes a query such as "(?X Sex female) and 
+(?X Survived 0)", i.e. who are the women ?X that survived to the accident, 
+and return the various value of ?X.
+
+In the first step, the database and the queries are modeled as graphs, 
+and the program must find all the possible morphisms/matchings between 
+a query and the base.
+
+The performance correspond to the time required to get the result, and 
+depends mainly on the data structures considered. Optimizations can 
+then be considered in the next steps by changing data structures (and 
+consequently programs) to improve performances.
+
+--- Step 1 ---
+The graph and queries are encoded as lists of edges, and an edge is 
+a triple of strings (subject, predicate, object).
+
+type Edge    = (String,String,String)
+type Graph   = [Edge]
+type Pattern = Graph
+
+The program is then represented by the following function. The context 
+is used to store the values of the variables found in a query (e.g. "?X"), 
+and the result is essentially a list of contexts.
+
+answer :: Pattern -> Graph -> Context -> Result
+
+type Context = [(String,String)]
+has :: String -> Context -> Bool
+get :: String -> Context -> String
+put :: String -> String -> Context -> Context
+
+type Result  = [(Bool,Context)]
+
+--- Performances ---
+By assuming that the program returns the good results, the following 
+consideration is: how long does it take ?
+
+The answer to this question consists in getting time before then after 
+a computation and returning the difference (or equivalently by using 
+the time command in a unix shell).
+
+The problem is here that Haskell is a lazy language and it only makes 
+necessary computations: i.e. (answer pattern graph) will be effectively 
+computed if the result is used. The solution is to use the "evaluate" 
+function that force its argument to be evaluated (call by value).
+
+Thus, the performance measurement will be obtained with:
+
+performance fx = do
+ t1 <- getCurrentTime
+ evaluate fx
+ t2 <- getCurrentTime
+ return (diffUTCTime t2 t1)
+
+Example of values obtained when changing the size of database or 
+the query are:
+
+Size \ Query |    q1    |    q2    |    q3
+0.1%         | 0.00084s | 0.00047s | 0.00044s
+1%           | 0.00891s | 0.00389s | 0.00637s
+10%          | 0.04412s | 0.04378s | 0.04432s
+50%          | 0.17314s | 0.18080s | 0.17075s
+100%         | 0.34306s | 0.36010s | 0.35782s
+
+With the following queries:
+q1 = (?X Sex male)
+q2 = (?X Sex male) and (?X Survived 1)
+q3 = (?X ?Y ?Z)
+
+As a comparison, the performances obtained by using MongoDB with a 
+single collection for the edges are:
+q1 = 0.00027s
+q3 = 0.00024s
+
+The jointure (q2) can not be easily expressed and is omitted.
+
+An analysis of the results shows that:
+1) the time required is proportionnal to the size of the database
+2) the query has no real impact in the performance
+3) the program is really than MongoDB (1000x faster)
+
+Notes. Some improvements have been considered with: 1) the use of tail 
+recursion and accumulators, and 2) the optimization flags (-O, -f*) and 
+capabilities of the ghc compiler. 
+But, no significant effects have been noticed.
+
+--- Optimizations ---
+Now, other data structure can be considered and lead to other 
+but similar programs. For instance, graphs and contexts can be encoded 
+as follow:
+
+type Graph'   = (Graph,Graph)
+type Graph''  = [String,[(String,String)]]
+type Context' = (String,[[String]])
+...
+
+Equality between the various representations of a data structure can be 
+formalized by isomorphisms. For instance, by considering a function that 
+split a list in two and the concatenation of lists, a property is 
+that for all lists l, concatenate(split(l)) = l.
+
+split       :: Graph  -> Graph'
+concatenate :: Graph' -> Graph
+
+This property can be used to get a new version of the answer program:
+
+answer' pat grp ctx = 
+ let (grp1,grp2) = split(grp)
+     r1 = answer pat grp1 ctx
+     r2 = answer pat grp2 ctx
+  in concatenate(r1,r2)
+
+The split function has next to be improved according the queries 
+considered. Indeed, if grp1 has an edge (a Sex female) and grp2 
+an edge (a Survived 0) then answer will returns [(?X,a)] to the 
+query "(?X Sex female) and (?X Survived 0)" but answer' will return 
+nothing.
+
+However, the preceding program is interesting to introduce concurrency 
+and distribution. Indeed, (r1,r2) can be computed separatly and by two 
+different processors (eventually placed in a network). By using this 
+property, computation time and performances can be improved.
+
+--- Step 2: concurrency ---
+A simple implementation of concurrency/distribution is given below. 
+The answer program is represented by slave processes/nodes using a 
+part of the whole database. The master program then dispatches a query 
+to a list of nodes and merges the results. The sample programs 
+shows how to use these elements.
+
+slave db port = withSocketsDo $ do 
+ sock <- listenOn $ PortNumber port
+ forever $ do
+  (handle, host, port) <- accept sock
+  query  <- hGetLine handle
+  let pat = read query :: Graph
+  let res = answer pat db []
+  hPutStrLn handle (show res)
+  hFlush handle
+  hClose handle
+
+master hosts query = withSocketsDo $ do
+ let nodes = map (\h -> connectTo (fst h) (PortNumber (snd h))) hosts
+ res <- sequence (map (\n -> transmit n q) nodes)
+ let r = concat res
+ print r
+  where
+   transmit node query = do
+   handle <- node
+   hPutStrLn handle query
+   hFlush handle
+   rep <- hGetLine handle
+   let r = read rep :: Result
+   hClose h
+   return r
+
+readDB :: Filename -> IO Graph
+query  :: String   -> Pattern
+
+sample = do
+ let q = query "(?X Sex female)"
+ db1 <- readDB "titanic-a"
+ db2 <- readDB "titanic-b"
+ forkIO (slave db1 9000)
+ forkIO (slave db2 9001)
+ threadDelay 10000
+ master [("localhost",9000),("localhost",9001)] (show q)
+
+
+
+
+
