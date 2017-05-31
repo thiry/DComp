@@ -17,9 +17,9 @@ put k v cs = (k,v):cs
 
 ---
 
-type Context' = [([String],[[String]])]
+-- type Context' = [([String],[[String]])]
 
---trans :: Context -> Context'
+trans :: Eq a => [(a, b)] -> [(a, [b])]
 trans cs = cs'
  where dom = nub (map fst cs)
        cs' = map (\k -> (k,map snd (filter ((==k).fst) cs))) dom

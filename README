@@ -7,6 +7,9 @@
 TODO:
 - show usage and give example of query/results
 - present the matching algorithm
+- merge has/get in context and use exception to divide the computations by 2.
+- suppress graph content, i.e. Int at the place of strings.
+- use bytestrings
 
 --- Introduction ---
 The aim of this project is to propose efficient programs able to query a 
@@ -247,11 +250,7 @@ E.g. trf' [(x,v1),(x,v2),(x,v3)] == [(x,[v1,v2,v3])]
 
 The program answer is adapted to use this new data structure:
 
-answer3 :: Pattern -> Graph -> Context -> Result'
-
-And the performances obtained are now:
-
-See Context and DB3.hs
+See DB3.hs
 
 --- Step 5: memorization  ---
 See end of DB.hs

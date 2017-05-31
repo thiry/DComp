@@ -87,8 +87,8 @@ test = do
  t1 <- getCurrentTime
  evaluate r1
  t2 <- getCurrentTime 
- putStrLn ("Wihout memorization: "++show (diffUTCTime t2 t1))
+ putStrLn ("Without memorization: "++show (diffUTCTime t2 t1))
  let (mem2,r2) = answer' mem1 query1 graph
  t3 <- getCurrentTime  
- putStrLn ("Wihout memorization: "++show (diffUTCTime t3 t2))
+ putStrLn ("With memorization: "++show (diffUTCTime t3 t2))
 
