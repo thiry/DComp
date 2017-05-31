@@ -1,5 +1,7 @@
 module Context where
 
+import Data.List (nub)
+
 type Context = [(String,String)]
 ctx = []
 
@@ -12,3 +14,15 @@ get x ((k,v):cs) = if (x==k) then v else get x cs
 
 put :: String -> String -> Context -> Context
 put k v cs = (k,v):cs
+
+---
+
+type Context' = [([String],[[String]])]
+
+--trans :: Context -> Context'
+trans cs = cs'
+ where dom = nub (map fst cs)
+       cs' = map (\k -> (k,map snd (filter ((==k).fst) cs))) dom
+
+c = [("x","v1"),("x","v2"),("x","v3"),("y","v4")]
+

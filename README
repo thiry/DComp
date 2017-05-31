@@ -4,6 +4,11 @@
 --- L. Thiry, 30/05/2017         ---
 ------------------------------------
 
+TODO:
+- show usage and give example of query/results
+- present the matching algorithm
+
+--- Introduction ---
 The aim of this project is to propose efficient programs able to query a 
 large number of data.
 
@@ -94,8 +99,8 @@ the database
 2) the query has no real impact in the performance
 3) the program is really slower than MongoDB (1000x faster)
 
-Notes. Some improvements have been considered with: 1) the use of tail 
-recursion and accumulators (see DBacc), and 
+Notes. Some improvements have been considered with the use of: 1) the tail 
+recursion and accumulators (see DBacc), 2) the cut-fusion property, and 
 2) the optimization flags (-O, -f*) and capabilities of the ghc compiler. 
 But, no significant effects have been noticed.
 
@@ -104,9 +109,9 @@ Now, other data structures can be considered and lead to other
 but similar programs. For instance, graphs and contexts can be encoded 
 as follow:
 
-type Graph'   = (Graph,Graph)
-type Graph''  = [String,[(String,String)]]
-type Context' = (String,[[String]])
+type Graph'  = (Graph,Graph)
+type Graph'' = [(String,[(String,String)])]
+type Result' = ([String],[[String]])
 ...
 
 Equality between the various representations of a data structure can be 
@@ -201,21 +206,53 @@ possible optimization is presented at step 4.
 
 --- Step 3: (re)arranging data  ---
 As shown in step 1, the performances are related to the size of the 
-database and changing its structure can leads to better
+database and changing its structure can leads to faster programs.
+In particular, an invertible transformation trf::Graph->Graph'' can be 
+defined. Thus, if the database/graph has approximatively 8000 elements 
+corresponding to the edges then trf(graph)/graph'' has 800 elements 
+representing the passagers and the properties of each one.
+
+Next, the program answer is adapted to use this new data structure:
+
+answer'' :: Pattern -> Graph'' -> Context -> Result
+
+And the performances obtained are in a single application:
 
 Size \ Query |    q1    |    q2    |    q3
 50%          | 0.14353s | 0.15395s | 0.13411s
 100%         | 0.28054s | 0.27429s | 0.27274s
 
-By using two computers:
+And in a distributed application with 2 slaves:
 
 Size \ Query |    q1    |    q2    |    q3
 100%         | 0.01044s | 0.00177s | 0.43470s
 
 An analysis of the results shows that:
-1) 
+1) the gain obtained is 17% for q1, 25% for q2 and 22% for q3 in a 
+single application, 
+2) the gain is 23% for q1, 5% for q2, and 6% for q3 in the distributed 
+case. 
+This confirms that 1) the choice of a good data structure can really 
+improve the performance of a program (approx. 20% in the single 
+application), and 2) the distributed case is influenced by other 
+parameters (approx. 10%) such as the data structure used for the results.
 
 --- Step 4: (re)arranging results  ---
+An invertible transformation trf'::Context->Context' can be 
+defined. Thus, if the results set has n (key,value) elements,
+corresponding to the possible value of the variables in a query, then 
+trf'(result)/result' has n/2 (key,values) elements.
+
+E.g. trf' [(x,v1),(x,v2),(x,v3)] == [(x,[v1,v2,v3])]
+
+The program answer is adapted to use this new data structure:
+
+answer3 :: Pattern -> Graph -> Context -> Result'
+
+And the performances obtained are now:
+
+See Context and DB3.hs
+
 --- Step 5: memorization  ---
 See end of DB.hs
 

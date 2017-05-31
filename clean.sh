@@ -1,4 +1,4 @@
 #/bin/bash
 
-rm *.o *.hi *.dot *.dhs
+rm *.dot *.dhs
 
