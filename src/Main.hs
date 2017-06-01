@@ -18,7 +18,7 @@ import Network.Socket
 -- ./Main "slave" "titanica.dhs" "9020" &
 -- ./Main "slave" "titanicb.dhs" "9030" &
 -- ./Main "master" "[(\"localhost\","9020"),(\"localhost\","9030")]"  "(?X Sex male) and (?X Survived 1)"
--- ./Main master "(?X Sex male) and (?X Survived 1)"
+-- ./Main "master" "(?X Sex male) and (?X Survived 1)"
 
 demo p qry_ = do
  let qry = query qry_
