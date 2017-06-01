@@ -17,7 +17,7 @@ type Mem = [(Pattern,Result)]
 
 ctn :: Pattern -> Mem -> Bool
 ctn x []         = False
-ctn x ((p,v):cs) = if null w then ctn x cs else True
+ctn x ((p,v):cs) = if (null w) then ctn x cs else True
  where w = answer p x []
 
 gt :: Pattern -> Mem -> Result
