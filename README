@@ -4,15 +4,9 @@
 --- L. Thiry, 30/05/2017         ---
 ------------------------------------
 
-TODO:
-- show usage and give example of query/results
-- present the matching algorithm
-- suppress graph content, i.e. Int at the place of strings.
-- use bytestrings
-
 --- Introduction ---
-The aim of this project is to propose efficient programs able to query a 
-large number of data.
+The aim of this project is to propose efficient (functional) programs 
+able to query a large number of data.
 
 As an illustration, the "titanic.csv" database is an array composed with 
 approximatively 8000 elements with the 891 passengers whose name, sex, 
@@ -20,7 +14,7 @@ status (i.e. has survived), etc. is known.
 
 The program considered takes a query such as "(?X Sex female) and 
 (?X Survived 0)", i.e. who are the women ?X that survived to the accident, 
-and return the various value of ?X.
+and return the various values of ?X.
 
 In the first step, the database and the queries are modeled as graphs, 
 and the program must find all the possible morphisms/matchings between 
@@ -31,6 +25,22 @@ depends mainly on the data structures considered. Optimizations can
 then be considered in the next steps by changing data structures (and 
 consequently programs) to improve performances.
 
+After having presented to basic program answer::Graph->Result, X 
+optimizations are presented and discussed with:
+1) the property of answer to be a monoidal morphism what can serve to 
+split computations in various computers or multiprocessors architectures 
+- i.e. answer (g1Ug2)=(answer(g1))U(answer(g2)),
+2) the size reduction of the input data based on a isomorphism g=_t g' 
+and answer' = answer.t
+3) the size reduction of the output data (usefull for exchanging data in 
+distributed computers) based on another isomorphism r=_s r' and
+answer'' = s.answer
+4) an isomorphism (Q->R =_u [(Q,R)])used to memorize previous results 
+and faster computations.
+
+The benefits/limitations of each one are discussed and related to the 
+performances of the MongoDB industrial standard.
+
 --- Step 1 ---
 The graph and queries are encoded as lists of edges, and an edge is 
 a triple of strings (subject, predicate, object).
@@ -39,18 +49,46 @@ type Edge    = (String,String,String)
 type Graph   = [Edge]
 type Pattern = Graph
 
-The program is then represented by the following function. The context 
+The program is then defined by the following functions. The context 
 is used to store the values of the variables found in a query (e.g. "?X"), 
 and the result is essentially a list of contexts.
 
-answer :: Pattern -> Graph -> Context -> Result
+match1 :: String -> String -> Context -> [Context]
+With for instance:
+match1 "?x" "y" []           == [[("?x","y")]]
+match1 "?x" "y" [("?x","y")] == [[("?x","y")]]
+match1 "?x" "y" [("?x","z")] == []
 
+match3 String^3 -> String^3 -> Context -> [Context]
+With for instance:
+match3 ("?x","y","z") ("a","y","z") [] == [[("?x","a")]]
+
+matchn :: String^3 -> Graph -> Context -> [Context]
+With for instance:
+matchn ("?x","y","z") [("a","y","z"),("b","y","z")] []
+== [[("?x","a"),("?x","b")]]
+
+answer :: Pattern -> Graph -> Context -> [Context]
+With for instance:
+answer [("?x","b","?y"),("?y","d","e")] [("b","d","e"),("a","b","c")] []
+== [[("?x","a"),("?y","c")]]
+
+And the context is defined by:
 type Context = [(String,String)]
 has :: String -> Context -> Bool
 get :: String -> Context -> String
 put :: String -> String -> Context -> Context
 
-type Result  = [Context]
+The main application is then defined by:
+
+main  = do
+ args <- getArgs
+ db   <- readCSV "titanic.csv"
+ let q = query (args!!0) -- with a parser, query :: String -> Pattern
+ print (answer q db)
+
+And a sample usage is:
+./Main "(?x Survived 1) and (?x Sex male)"
 
 --- Performances ---
 By assuming that the program returns the good results, the following 
@@ -287,6 +325,17 @@ not be explained despite many checks of the code.
  
 Thus this final version of the program is the consumming the less time 
 ... but the more memory.
+
+--- Step 6: Avoiding strings ---
+As a final example of optimization, by susbstituting strings by 
+integers/references in the graph leads to the performances below what 
+is 5-10x slower then MongoDB.
+
+ \ Query |    q1    |    q2    |    q3
+         | 0.00063s | 0.00085s | 0.00046s
+
+A alternative is to use ByteString, i.e. a more efficient representation 
+of strings (=[Char])
 
 --- Conclusion ---
 An open source software for distributed logical databases more efficient 
