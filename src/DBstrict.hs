@@ -1,4 +1,4 @@
-module DB where
+module DBstrict where
 
 
 import Context
@@ -48,11 +48,11 @@ match3 (p,q,r) (v,w,x) ctx =
   else (False,ctx)
 
 matchn :: Edge -> Graph -> Context -> Result
-matchn p vs ctx = filter fst (map (\v -> match3 p v ctx) vs) 
+matchn p vs ctx = filter fst $! (map (\v -> match3 p v ctx) vs) 
 
 answer :: Pattern -> Graph -> Context -> Result
 answer (p:[]) vs ctx = matchn p vs ctx
 answer (p:ps) vs ctx = 
- let cs = map snd (matchn p vs ctx) in concat (map (answer ps vs) cs)
+ let cs = map snd (matchn p vs ctx) in concat (map (answer ps vs) $! cs)
 
 

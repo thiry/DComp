@@ -7,7 +7,6 @@
 TODO:
 - show usage and give example of query/results
 - present the matching algorithm
-- merge has/get in context and use exception to divide the computations by 2.
 - suppress graph content, i.e. Int at the place of strings.
 - use bytestrings
 
@@ -51,7 +50,7 @@ has :: String -> Context -> Bool
 get :: String -> Context -> String
 put :: String -> String -> Context -> Context
 
-type Result  = [(Bool,Context)]
+type Result  = [Context]
 
 --- Performances ---
 By assuming that the program returns the good results, the following 
@@ -114,7 +113,7 @@ as follow:
 
 type Graph'  = (Graph,Graph)
 type Graph'' = [(String,[(String,String)])]
-type Result' = ([String],[[String]])
+type Context' = ([String],[[String]])
 ...
 
 Equality between the various representations of a data structure can be 
@@ -243,17 +242,51 @@ parameters (approx. 10%) such as the data structure used for the results.
 --- Step 4: (re)arranging results  ---
 An invertible transformation trf'::Context->Context' can be 
 defined. Thus, if the results set has n (key,value) elements,
-corresponding to the possible value of the variables in a query, then 
-trf'(result)/result' has n/2 (key,values) elements.
+corresponding to the possible values of the variables in a query, then 
+trf'(result)/result' has approximatively n/2 (key,values) elements.
 
 E.g. trf' [(x,v1),(x,v2),(x,v3)] == [(x,[v1,v2,v3])]
 
-The program answer is adapted to use this new data structure:
+The program answer is adapted to use this new data structure and the 
+performances are (See DB3 and Main3):
 
-See DB3.hs
+Mode \ Query |    q1    |    q2    |    q3
+Single       | 0.35186s | 1.33218s | 0.36304s
+Distributed  | 0.00365s | 0.00071s | 0.16356s
+
+An analysis of the results shows that:
+1) the performances of new version of the application are similar to 
+the original application for q1 and q3, but 3x slower for q2. The 
+structure of the result returned as a deep impact in the algorithm that 
+involved here extra treatments.
+2) the distributed version of the new application is, except for q3, 
+10x more faster than the original one. This can be explained by the 
+size reduction of the result.
 
 --- Step 5: memorization  ---
-See end of DB.hs
+Another optimization consists in replacing computations by memorizations, 
+i.e. a function f:x->y is associated to a association list l=[(x,y)], and 
+f'_l(x) = (l(x),l) if x:dom(l), = (f(x),l U {(x,f(x))}) otherwise.
+Thus, already performed computations are stored and used before computing 
+a result that will be memorized, etc.
+
+The performances then become:
+
+Memo \ Query |    q1    |    q2    |    q3
+Without      | 0.36690s | 0.28337s | 0.00053s
+With         | 0.00016s | 0.00019s | 0.00013s
+
+The results shows that:
+1) the second time a value is computed requires approximatively 0.00015s 
+what is similar to the performance of MongoDB, 
+2) each computations can improve the next computations - for instance, 
+the performances for q2 is reduced for the original version of the 
+program and can be explained by the fact that q1 appears as a part of q2,
+3) as a complement to the preceding remark, the performance for q3 can 
+not be explained despite many checks of the code.
+ 
+Thus this final version of the program is the consumming the less time 
+... but the more memory.
 
 --- Conclusion ---
 An open source software for distributed logical databases more efficient 
