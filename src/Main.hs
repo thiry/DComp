@@ -2,7 +2,7 @@ module Main where
 
 import Titanic
 import Query
-import Dist
+import DistMem -- import Dist
 import DB -- DBacc optimization
 import qualified DB2 as D
 import qualified Dist2 as Ds

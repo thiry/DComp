@@ -79,7 +79,7 @@ has :: String -> Context -> Bool
 get :: String -> Context -> String
 put :: String -> String -> Context -> Context
 
-The main application is then defined by:
+The main application (simplified) is then defined by:
 
 main  = do
  args <- getArgs
@@ -87,8 +87,24 @@ main  = do
  let q = query (args!!0) -- with a parser, query :: String -> Pattern
  print (answer q db)
 
-And a sample usage is:
+And a sample usage in standalone mode is:
 ./Main "(?x Survived 1) and (?x Sex male)"
+
+In distributed mode:
+./Main "slave" "titanic.dhs" "9000"    # in the various servers
+./Main "server" "(?x Survived 1)" # in the client(s)
+# with a configuration file for the client config.txt containing for 
+instance:
+[("ip1",9000),("ip2",9000)]
+
+The performances are then obtained by using the "time" command, e.g.
+time(./Main "master" "(?X Survived 0) and (?X Sex female)")
+
+real	0m0.515s
+user	0m0.016s
+sys		0m0.012s
+
+Another approach is proposed to compute time directly inside a programs.
 
 --- Performances ---
 By assuming that the program returns the good results, the following 

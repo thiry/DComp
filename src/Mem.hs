@@ -32,6 +32,9 @@ answer' mem ps vs = if ctn ps mem then (mem,gt ps mem) else (mem',rs)
  where rs   = answer ps vs []
        mem' = pt ps rs mem
 
+rx = answer' [] [("?x","a","b")] [("z","a","e"),("z","a","b"),("e","f","g")]
+ry = answer' [([("?x","a","b")],[(True,[("?x","k")])])] [("?x","a","b")] []
+
 test = do
  db <- readFile "titanic.dhs"
  let graph = read db :: Graph
