@@ -1,5 +1,0 @@
-digraph G {
-node[shape=plaintext]; edge[arrowhead=vee];
-"?X"->"male"[label="Sex"];
-"?X"->"1"[label="Survived"];
-}
